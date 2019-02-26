@@ -5,22 +5,27 @@ import numpy as np
 from networkx import minimum_spanning_tree
 from networkx import complete_graph
 
-def visualizeData(data, distanceMatrix):
+def visualizeData(nodes, distanceMatrix, data, edges=None):
     G = nx.Graph()
-    for i in range(len(data)):
-        G.add_node(i)
-    lst = []
-    for i in range(len(distanceMatrix)):
-        for j in range(i, len(distanceMatrix)):
-            lst.append((i,j,distanceMatrix[i,j]))
+    for d in nodes:
+        G.add_node(d)
+    if edges is None:
+        edges = []
+        for i in range(len(nodes)):
+            for j in range(i+1, len(nodes)):
+                edges.append((nodes[i],nodes[j],distanceMatrix[nodes[i],nodes[j]]))
 
-    G.add_weighted_edges_from(lst)
-    MST= minimum_spanning_tree(G)
+    G.add_weighted_edges_from(edges)
+    #MST= minimum_spanning_tree(G)
     plt.subplot(121)
-    nx.draw(MST, node_size=20, pos=data)
+    nx.draw(G, node_size=20, pos=data)
     #nx.draw(G, node_size=55, pos=data)
-    print(MST.size(weight='weight'))
+    #print(MST.size(weight='weight'))
     plt.subplot(122)
-    plt.scatter(data[:,0], data[:,1])
+    plt.scatter(data[nodes,0], data[nodes,1])
+    for edge in edges:
+        edge = list(edge)
+        pos = data[edge[:2]][:,0]
+        plt.plot(data[edge[:2]][:,0], data[edge[:2]][:,1])
     plt.show()
 
