@@ -5,7 +5,7 @@ from LoadData import readData
 from drawGraph import visualizeData
 import PRIM
 from MST import MST_length
-import Nearest
+from Nearest import Nearest
 import random
 # start time measure
 t = time()
@@ -16,7 +16,10 @@ matrix = getDistanceMatrix(position_data)
 nodes = random.sample(range(201), 3)
 nodes2 = random.sample(range(201), 3)
 
-Nearest.nearest(range(201), matrix)
+nearest = Nearest(range(len(matrix)),matrix, 10)
+for _ in range(10):
+    nearest.distribute_optimal_point()
+
 #length, edges = PRIM.PRIM(nodes, matrix)
 #length2, edges2 = PRIM.PRIM(nodes2, matrix)
 #print(length)

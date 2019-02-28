@@ -8,7 +8,7 @@ def PRIM(nodes, distance_matrix, getOnlySum=False):
         return 0, []
     if len(nodes) == 2:
         dist = distance_matrix[nodes[0], nodes[1]]
-        print(dist)
+
         if getOnlySum:
             return dist
         return dist, [(nodes[0], nodes[1], dist)]
@@ -22,8 +22,7 @@ def PRIM(nodes, distance_matrix, getOnlySum=False):
         nodes_left.remove(node_left)
         edges.append((node_in, node_left, dist))
         sum += dist
-        if len(nodes_left) == 0:
-            print(dist)
+
     if getOnlySum:
         return sum
 
