@@ -2,28 +2,41 @@ from time import time
 
 from DistanceMatrix import getDistanceMatrix
 from LoadData import readData
-from drawGraph import visualizeData
-import PRIM
-from MST import MST_length
 from Nearest import Nearest
-import random
+
 # start time measure
 t = time()
-#prepare data
+# prepare data
 position_data = readData()
 matrix = getDistanceMatrix(position_data)
+all_nodes = len(position_data)
+clusters = 10
+times = 10
 
-nodes = random.sample(range(201), 3)
-nodes2 = random.sample(range(201), 3)
+optimal_nearest = None
+optimal_length = None
+for loop in range(times):
 
-nearest = Nearest(range(len(matrix)),matrix, 10)
-for _ in range(10):
-    nearest.distribute_optimal_point()
+    nearest = Nearest(range(len(matrix)), matrix, clusters)
 
-#length, edges = PRIM.PRIM(nodes, matrix)
-#length2, edges2 = PRIM.PRIM(nodes2, matrix)
-#print(length)
-#print(MST_length(nodes, matrix))
+    for i in range(all_nodes - clusters):
+        nearest.distribute_optimal_point()
+
+    current_length = nearest.sum_of_MST()
+
+
+    if optimal_length is None or optimal_length > current_length:
+        optimal_length = current_length
+        optimal_nearest = nearest
+    print(str(loop+1) + '. Sum of lengths: ' + str(current_length))
+print('-----------------------------')
+print('Best sum of lengths: ' + str(optimal_length))
+print('Time: ' + str(time() - t))
+optimal_nearest.visualize(position_data)
+# length, edges = PRIM.PRIM(nodes, matrix)
+# length2, edges2 = PRIM.PRIM(nodes2, matrix)
+# print(length)
+# print(MST_length(nodes, matrix))
 # print elapsed time
-print(str(time() - t))
-#visualizeData(position_data, [nodes,nodes2], edges+ edges2)
+
+# visualizeData(position_data, [nodes,nodes2], edges+ edges2)
