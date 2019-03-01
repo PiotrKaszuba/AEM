@@ -1,9 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import LoadData
-import numpy as np
-from networkx import minimum_spanning_tree
-from networkx import complete_graph
+
 
 def visualizeData(nodes, distanceMatrix, data, edges=None):
     G = nx.Graph()

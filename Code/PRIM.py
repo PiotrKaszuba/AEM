@@ -2,16 +2,19 @@ import numpy as np
 
 
 def PRIM(nodes, distance_matrix, getOnlySum=False):
+    # for less than 2 nodes
     if len(nodes) < 2:
         if getOnlySum:
             return 0
         return 0, []
+    # for 2 nodes
     if len(nodes) == 2:
         dist = distance_matrix[nodes[0], nodes[1]]
 
         if getOnlySum:
             return dist
         return dist, [(nodes[0], nodes[1], dist)]
+    # for more than 2 nodes
     nodes_in = [nodes[0]]
     nodes_left = nodes[1:]
     edges = []

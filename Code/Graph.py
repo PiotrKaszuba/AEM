@@ -1,4 +1,4 @@
-from PRIM import PRIM
+from Code.PRIM import PRIM
 
 class Graph:
     def __init__(self, points, distance_matrix):
@@ -7,12 +7,24 @@ class Graph:
         self.MST_length = 0
         self._candidate_nodes_costs = {}
         self._distance_matrix = distance_matrix
+
         self.edges = []
+
+
     def appendPoint(self, node):
         self.points.append(node)
         self._recompute = True
         self.MST_length, self.edges = PRIM(self.points, self._distance_matrix)
 
+
+
+
+    def get_node_cost(self, node):
+        return PRIM(
+                    list(self.points) + [node],
+                    self._distance_matrix,
+                    True
+                ) - self.MST_length
     def compute_nodes_costs(self, nodes):
         if self._recompute:
             self._candidate_nodes_costs.clear()
