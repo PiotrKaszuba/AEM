@@ -1,13 +1,14 @@
+import random
 from time import time
+
+from scipy import average
 
 from Code.Data.DistanceMatrix import getDistanceMatrix
 from Code.Data.LoadData import readData
 from Code.Methods.Nearest import Nearest
-import random
-# start time measure
-t = time()
+
 # prepare data
-position_data = readData()
+position_data = readData(path="../objects.data")
 matrix = getDistanceMatrix(position_data)
 all_nodes = len(position_data)
 clusters = 10
@@ -16,32 +17,46 @@ times = 100
 optimal_nearest = None
 optimal_length = None
 optimal_seed = 0
+lengths = []
+durations = []
+seed = time()
+random.seed(seed)
 for loop in range(times):
-    seed = time()
-    random.seed(seed)
-    nearest = Nearest(range(len(matrix)), matrix, clusters, init_by_range=True, online_draw=False,
+
+    t = time()
+    nearest = Nearest(range(len(matrix)), matrix, clusters, init_by_range=False, online_draw=False,
                       position_data=position_data)
-    #nearest.visualize(position_data)
+    nearest.visualize(position_data)
 
     for i in range(all_nodes - clusters):
         nearest.distribute_optimal_point()
 
     current_length = nearest.sum_of_MST()
-    print('Time: ' + str(time() - t))
-    t = time()
+
+    duration = time() - t
+    print('Time: ' + str(duration))
+    durations.append(duration)
+
+    lengths.append(current_length)
+
 
     if optimal_length is None or optimal_length > current_length:
         optimal_length = current_length
         optimal_nearest = nearest
         optimal_seed = seed
-        with open('max.txt', 'w') as file:
-            file.write('Seed: ' +str(optimal_seed)+', Length: '+str(optimal_length))
 
     print(str(loop + 1) + '. Sum of lengths: ' + str(current_length))
-    # nearest.visualize(position_data)
+
+    nearest.visualize(position_data)
+
 print('-----------------------------')
 print('Best sum of lengths: ' + str(optimal_length))
-print('Time: ' + str(time() - t))
+print('Worst: ' + str(max(lengths)))
+print('Avg: ' + str(average(lengths)))
+print('Avg Time: ' + str(average(durations)))
+with open('max.txt', 'a+') as file:
+    file.write('Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
+        lengths)) + ', Avg: ' + str(average(lengths)) + ', Avg time: ' + str(average(durations)) + '\n')
 optimal_nearest.visualize(position_data)
 # length, edges = PRIM.PRIM(nodes, matrix)
 # length2, edges2 = PRIM.PRIM(nodes2, matrix)

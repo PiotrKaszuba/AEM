@@ -17,3 +17,16 @@ def visualizeData(position_data, nodes, edges, retFigure=False):
         return fig
     else:
         plt.show()
+
+import numpy as np
+import cv2
+def draw(position_data, nodes, edges):
+    fig = visualizeData(position_data, nodes,
+                        edges, True)
+    fig.canvas.draw()
+    data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    cv2.imshow('win', data)
+    cv2.waitKey(10)
+    plt.close(fig)

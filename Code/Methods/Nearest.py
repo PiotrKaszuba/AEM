@@ -10,7 +10,7 @@ from scipy import var
 
 from Code.Graph import Graph
 from Code.drawGraph import visualizeData
-
+import math
 
 class Nearest:
     def __init__(self, nodes, distance_matrix, num_of_clusters=None, starting_points=None, init_by_range=False,
@@ -41,21 +41,51 @@ class Nearest:
             for _ in range(self._num_of_clusters)
         ]
 
-    @staticmethod
-    def func(x):
-        x -= random.randrange(140,160)
-        return -(x ** 2) + random.randrange(75,90) * x
+
+    def func(self, x):
+        #x -= random.randrange(140,160)
+        #return -(x ** 2) + random.randrange(75,90) * x
+
+        #negative 'a' coeff in quadratic function gives it's max at -b/2a
+        # let max be at calculated product distance -> -b/2a = product -> b = -2* a * product
+        # slope initialized at a = 1 -> increasing / decrasing modifies the slope
+        # c might be set to get some threshold
+        a = - abs(self._slope_level) # a is negative and at slope level
+        b = -2 *  a * self._product
+        c = self._threshold
+        f = a*(x**2) + b * x + c
+
+        return f
+
 
     def initialize_by_range(self):
+        dims = len(self._position_data[0])
+        self._product = 1
+        for i in range(dims):
+            min_i = np.amin(self._position_data[:,i-1], axis=0)
+            max_i = np.amax(self._position_data[:, i-1], axis=0)
+            rang_i = max_i - min_i
+            self._product *= rang_i
 
-        indices = np.unravel_index(np.argmax(self._distance_matrix), self._distance_matrix.shape)
-        points = [ind for ind in indices]
+        self._product /= self._num_of_clusters
+        # root of dims degree
+        self._product = math.pow(self._product, 1/dims)
+        self._product *= math.sqrt(dims) # times diagonal
+
+        self._slope_level = 1
+        self._threshold = 0
+
+        #indices = np.unravel_index(np.argmax(self._distance_matrix), self._distance_matrix.shape)
+        #points = [ind for ind in indices]
+
+        points = [np.random.randint(0, 201)]
 
         while len(points) < self._num_of_clusters:
             candidates = [([self._distance_matrix[i, point] for point in points], i) for i in
                           range(len(self._distance_matrix)) if i not in points]
 
-            cand_vals = [(mean(list(map(self.func, cand[0]))) - var(self._distance_matrix[:, cand[1]]), cand[1]) for
+            cand_vals = [(mean(list(map(self.func, cand[0]))) #- var(self._distance_matrix[:, cand[1]])
+                          , cand[1]) for
                          cand in candidates]
 
             sum_dist, point = max(cand_vals, key=lambda t: t[0])
