@@ -25,10 +25,11 @@ class Graph:
         self._recompute = True
         self.computeMST()
 
-    def removePoints(self, points):
+    def removePoints(self, points, compute_MST=False):
         self.points = [point for point in self.points if point not in points]
         self._recompute = True
-        # self.computeMST()
+        if compute_MST:
+            self.computeMST()
 
     def compute_edges_length(self):
         return reduce(add, [i[2] for i in self.edges])

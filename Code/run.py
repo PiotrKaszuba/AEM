@@ -6,6 +6,7 @@ from scipy import average
 from Code.Data.DistanceMatrix import getDistanceMatrix
 from Code.Data.LoadData import readData
 from Code.Methods.Nearest import Nearest
+from Code.Methods.Regret import Regret
 
 # prepare data
 position_data = readData(path="../objects.data")
@@ -19,17 +20,20 @@ optimal_length = None
 optimal_seed = 0
 lengths = []
 durations = []
-seed = time()
+seed = 7
 random.seed(seed)
+
+rand = random.Random();
+rand.seed(4)
 for loop in range(times):
 
     t = time()
-    nearest = Nearest(range(len(matrix)), matrix, clusters, init_by_range=False, online_draw=False,
-                      position_data=position_data)
-    nearest.visualize(position_data)
+    nearest = Regret(range(len(matrix)), matrix, rand, clusters, init_by_range=True, online_draw=False, position_data=position_data)
+    # nearest = Nearest(range(len(matrix)), matrix, rand, clusters, init_by_range=False, online_draw=False, position_data=position_data)
+    # nearest.visualize(position_data)
 
-    for i in range(all_nodes - clusters):
-        nearest.distribute_optimal_point()
+    while(len(nearest._nodes_left)>0):
+        nearest.distribute_next_point()
 
     current_length = nearest.sum_of_MST()
 
@@ -47,7 +51,7 @@ for loop in range(times):
 
     print(str(loop + 1) + '. Sum of lengths: ' + str(current_length))
 
-    nearest.visualize(position_data)
+    # nearest.visualize(position_data)
 
 print('-----------------------------')
 print('Best sum of lengths: ' + str(optimal_length))
