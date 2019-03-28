@@ -24,10 +24,11 @@ class Graph:
     def computeMST(self):
         self.MST_length, self.edges = PRIM(self.points, self._distance_matrix)
 
-    def appendPoint(self, node):
+    def appendPoint(self, node, compute_MST=True):
         self.points.append(node)
         self._recompute = True
-        self.computeMST()
+        if compute_MST:
+            self.computeMST()
 
     def removePoints(self, points, compute_MST=False):
         self.points = [point for point in self.points if point not in points]
@@ -102,3 +103,4 @@ class Graph:
 
     def full_connected_graph_avg_point_distance(self):
         self.avg_points_distance = np.mean([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
+        return self.avg_points_distance
