@@ -78,6 +78,7 @@ class LocalSearch:
 
     def steep_step(self):
         max_move = 0
+        best_move = None;
         for move in self.moves:
             point = move[0]
             currentGraph = self.graphFromPoint[point]
@@ -86,10 +87,16 @@ class LocalSearch:
             move_cost, avg_from, avg_to = self.moveCost()
             if move_cost > max_move:
                 max_move = move_cost
-                best_move = (move, currentGraph, moveToGraph, avg_from, avg_to)
+                best_move = (move, avg_from, avg_to)
+        if(best_move!=None):
+            self.movePoint(best_move[0][0],self.graphFromPoint[best_move[0][0]],best_move[0][1],avgs_to_set=[avg_from,avg_to])
+            return True
+        else:
+            return False
         
 
     def steep(selfs):
+        improve = True
         while (improve):
             self.generateMoves()
-            self.steeStep()
+            improve = self.steep_step()
