@@ -16,6 +16,7 @@ class Graph:
         self.MST_length = 0
         self._candidate_nodes_costs = {}
         self._distance_matrix = distance_matrix
+        self.avg_points_distance = 0;
 
         self.edges = []
         self.computeMST()
@@ -100,4 +101,4 @@ class Graph:
         return list(points_in)
 
     def full_connected_graph_avg_point_distance(self):
-        return np.mean([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
+        self.avg_points_distance = np.mean([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
