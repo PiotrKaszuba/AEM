@@ -5,12 +5,14 @@ class LocalSearch:
         self.points = []
         self.graphFromPoint = self.generatePointsDict()
 
-        self.metric = self.countMetric()
+        self.metric = self.countMetric(True)
 
-    def countMetric(self):
+    def countMetric(self, recompute=False):
         temp=0
         for graph in self.graphs:
-            temp+=graph.MST_length
+            if recompute:
+                graph.full_connected_graph_avg_point_distance()
+            temp+=graph.average_points_distance
         self.metric = temp/len(self.graphs)
     def generatePointsDict(self):
         for graph in self.graphFromPoint:
@@ -27,12 +29,15 @@ class LocalSearch:
 
         shuffle(self.moves)
 
-
+    def moveCost(self, point, graphFrom, graphTo):
+        currentCostGraphFrom = graphFrom.average_points_distance
+        currentCostGraphTo = graphTo.average_points_distance
+        graphFrom.remove(point, False)
     def greedyStep(self):
         for move in self.moves:
             point = move[0]
             currentGraph = self.graphFromPoint[point]
-
+            self.moveCost()
 
 
     def greedy(self):
@@ -40,5 +45,5 @@ class LocalSearch:
 
         while(improve):
             self.generateMoves()
-
+            self.greedyStep()
 
