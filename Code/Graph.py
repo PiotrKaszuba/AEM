@@ -5,6 +5,9 @@ from operator import itemgetter
 from Code.PRIM import PRIM
 from Code.drawGraph import draw
 
+from itertools import combinations
+import numpy as np
+
 
 class Graph:
     def __init__(self, points, distance_matrix):
@@ -95,3 +98,6 @@ class Graph:
         self.edges = edges_left
 
         return list(points_in)
+
+    def full_connected_graph_avg_point_distance(self):
+        return np.mean([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
