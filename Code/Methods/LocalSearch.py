@@ -32,12 +32,9 @@ class LocalSearch:
     def moveCost(self, point, graphFrom, graphTo):
         currentCostGraphFrom = graphFrom.avg_points_distance
         currentCostGraphTo = graphTo.avg_points_distance
-        graphFrom.remove([point], False)
-        graphTo.appendPoint(point, False)
-        changedCostFrom = graphFrom.full_connected_graph_avg_point_distance()
-        changedCostTo = graphTo.full_connected_graph_avg_point_distance()
-        graphTo.remove([point], False)
-        graphFrom.appendPoint(point, False)
+        changesCostFrom, changedCostTo = self.movePoint(point, graphFrom, graphTo, True)
+
+        self.movePoint(point, graphTo, graphFrom, avgs_to_set=)
 
         graphFrom.avg_points_distance = currentCostGraphFrom
         graphTo.avg_points_distance = currentCostGraphTo
@@ -47,14 +44,26 @@ class LocalSearch:
 
         return avgBefore - avgAfter, changedCostFrom, changedCostTo
 
-
+    def movePoint(self, point, graphFrom, graphTo, recompute=False, avgs_to_set=None):
+        graphFrom.remove([point], False)
+        graphTo.appendPoint(point, False)
+        if recompute:
+            graphFrom.full_connected_graph_avg_point_distance()
+            graphTo.full_connected_graph_avg_point_distance()
+        if avgs_to_set is not None:
+            graphFrom.avg_points_distance = avgs_to_set[0]
+            graphTo.avg_points_distance = avgs_to_set[1]
+        return graphFrom.avg_points_distance, graphTo.avg_points_distance
     def greedyStep(self):
         for move in self.moves:
             point = move[0]
             currentGraph = self.graphFromPoint[point]
             moveToGraph = move[1]
 
-            move_cost, avg_from, avg_to =  self.moveCost()
+            move_cost, avg_from, avg_to =  self.moveCost(point, currentGraph, moveToGraph)
+
+            if move_cost > 0:
+
 
 
     def greedy(self):
