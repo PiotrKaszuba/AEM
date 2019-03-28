@@ -1,4 +1,6 @@
 from random import shuffle
+
+
 class LocalSearch:
     def __init__(self, listOfGraphs):
         self.graphs = listOfGraphs
@@ -8,12 +10,13 @@ class LocalSearch:
         self.metric = self.countMetric(True)
 
     def countMetric(self, recompute=False):
-        temp=0
+        temp = 0
         for graph in self.graphs:
             if recompute:
                 graph.full_connected_graph_avg_point_distance()
-            temp+=graph.avg_points_distance
-        self.metric = temp/len(self.graphs)
+            temp += graph.avg_points_distance
+        self.metric = temp / len(self.graphs)
+
     def generatePointsDict(self):
         for graph in self.graphFromPoint:
             for point in graph.points:
@@ -39,8 +42,8 @@ class LocalSearch:
         graphFrom.avg_points_distance = currentCostGraphFrom
         graphTo.avg_points_distance = currentCostGraphTo
 
-        avgBefore = (currentCostGraphFrom+currentCostGraphTo)/2
-        avgAfter = (changedCostFrom+changedCostTo)/2
+        avgBefore = (currentCostGraphFrom + currentCostGraphTo) / 2
+        avgAfter = (changedCostFrom + changedCostTo) / 2
 
         return avgBefore - avgAfter, changedCostFrom, changedCostTo
 
@@ -54,6 +57,7 @@ class LocalSearch:
             graphFrom.avg_points_distance = avgs_to_set[0]
             graphTo.avg_points_distance = avgs_to_set[1]
         return graphFrom.avg_points_distance, graphTo.avg_points_distance
+
     def greedyStep(self):
         for move in self.moves:
             point = move[0]
@@ -65,11 +69,27 @@ class LocalSearch:
             if move_cost > 0:
 
 
-
     def greedy(self):
         improve = True
 
-        while(improve):
+        while (improve):
             self.generateMoves()
             self.greedyStep()
 
+    def steep_step(self):
+        max_move = 0
+        for move in self.moves:
+            point = move[0]
+            currentGraph = self.graphFromPoint[point]
+            moveToGraph = move[1]
+
+            move_cost, avg_from, avg_to = self.moveCost()
+            if move_cost > max_move:
+                max_move = move_cost
+                best_move = (move, currentGraph, moveToGraph, avg_from, avg_to)
+        
+
+    def steep(selfs):
+        while (improve):
+            self.generateMoves()
+            self.steeStep()
