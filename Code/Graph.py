@@ -8,7 +8,7 @@ from Code.drawGraph import draw
 from itertools import combinations
 import numpy as np
 
-
+import math
 class Graph:
     def __init__(self, points, distance_matrix):
         self.points = points
@@ -16,7 +16,7 @@ class Graph:
         self.MST_length = 0
         self._candidate_nodes_costs = {}
         self._distance_matrix = distance_matrix
-        self.avg_points_distance = 0;
+        self.points_distance = 0;
 
         self.edges = []
         self.computeMST()
@@ -101,6 +101,14 @@ class Graph:
 
         return list(points_in)
 
-    def full_connected_graph_avg_point_distance(self):
-        self.avg_points_distance = np.mean([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
-        return self.avg_points_distance
+    def nCr(self, n, k):
+        if n-k < 0:
+            return 0
+        f = math.factorial
+        return f(n) / f(k) / f(n - k)
+    def full_connected_graph_point_distance(self):
+
+        self.points_distance = np.sum([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
+
+        self.weights = self.nCr(len(self.points), 2)
+        return self.points_distance

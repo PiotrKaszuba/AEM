@@ -2,7 +2,7 @@ import random
 from time import time
 
 from scipy import average
-
+from Code.Methods.LocalSearch import  LocalSearch
 from Code.Data.DistanceMatrix import getDistanceMatrix
 from Code.Data.LoadData import readData
 from Code.Methods.Nearest import Nearest
@@ -34,6 +34,13 @@ for loop in range(times):
 
     while(len(nearest._nodes_left)>0):
         nearest.distribute_next_point()
+
+
+    localSearch = LocalSearch(nearest._clusters, nearest)
+    print(localSearch.countMetric(True))
+    localSearch.greedy()
+    print(localSearch.countMetric(True))
+
 
     current_length = nearest.sum_of_MST()
 
