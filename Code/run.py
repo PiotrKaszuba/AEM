@@ -9,10 +9,10 @@ from Code.Methods.Nearest import Nearest
 from Code.Methods.Regret import Regret
 
 # prepare data
-position_data = readData(path="../objects.data")
+position_data = readData(path="../objects20_06.data")
 matrix = getDistanceMatrix(position_data)
 all_nodes = len(position_data)
-clusters = 10
+clusters = 20
 times = 100
 
 optimal_nearest = None
@@ -23,12 +23,12 @@ durations = []
 seed = 7
 random.seed(seed)
 
-rand = random.Random();
+rand = random.Random()
 rand.seed(4)
 for loop in range(times):
 
     t = time()
-    nearest = Regret(range(len(matrix)), matrix, rand, clusters, init_by_range=True, online_draw=False, position_data=position_data)
+    nearest = Nearest(range(len(matrix)), matrix, rand, clusters, init_by_range=False, online_draw=False, position_data=position_data)
     # nearest = Nearest(range(len(matrix)), matrix, rand, clusters, init_by_range=False, online_draw=False, position_data=position_data)
     # nearest.visualize(position_data)
 
@@ -36,13 +36,14 @@ for loop in range(times):
         nearest.distribute_next_point()
 
 
+    #nearest.visualize(position_data, drawEdges=False)
     localSearch = LocalSearch(nearest._clusters, nearest)
-    print(localSearch.countMetric(True))
+    #print(localSearch.countMetric(True))
     localSearch.greedy()
-    print(localSearch.countMetric(True))
+    #print(localSearch.countMetric(True))
 
 
-    current_length = nearest.sum_of_MST()
+    current_length = localSearch.countMetric()
 
     duration = time() - t
     print('Time: ' + str(duration))
@@ -66,9 +67,9 @@ print('Worst: ' + str(max(lengths)))
 print('Avg: ' + str(average(lengths)))
 print('Avg Time: ' + str(average(durations)))
 with open('max.txt', 'a+') as file:
-    file.write('Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
+    file.write('Next-Greedy- Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
         lengths)) + ', Avg: ' + str(average(lengths)) + ', Avg time: ' + str(average(durations)) + '\n')
-optimal_nearest.visualize(position_data)
+optimal_nearest.draw("Next-Greedy-cc.png", drawEdges=False)
 # length, edges = PRIM.PRIM(nodes, matrix)
 # length2, edges2 = PRIM.PRIM(nodes2, matrix)
 # print(length)

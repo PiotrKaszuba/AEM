@@ -30,8 +30,11 @@ class Graph:
         if compute_MST:
             self.computeMST()
 
-    def removePoints(self, points, compute_MST=False):
-        self.points = [point for point in self.points if point not in points]
+    def removePoints(self, points, point =None, compute_MST=False):
+        if points is not None:
+            self.points = [point for point in self.points if point not in points]
+        if point is not None:
+            self.points.remove(point)
         self._recompute = True
         if compute_MST:
             self.computeMST()
@@ -101,14 +104,18 @@ class Graph:
 
         return list(points_in)
 
-    def nCr(self, n, k):
-        if n-k < 0:
+    def nCr(self, n):
+        if n-2 < 0:
             return 0
-        f = math.factorial
-        return f(n) / f(k) / f(n - k)
-    def full_connected_graph_point_distance(self):
+        return n * (n-1)/2
+    def full_connected_graph_point_distance(self, computeAll=True, pointAdd=None, pointRemove=None):
+        if computeAll:
+            self.points_distance = np.sum([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
+        else:
+            if pointAdd is not None:
+                self.points_distance += np.sum(self._distance_matrix[pointAdd, self.points])
+            if pointRemove is not None:
+                self.points_distance -= np.sum(self._distance_matrix[pointRemove, self.points])
 
-        self.points_distance = np.sum([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
-
-        self.weights = self.nCr(len(self.points), 2)
+        self.weights = self.nCr(len(self.points))
         return self.points_distance

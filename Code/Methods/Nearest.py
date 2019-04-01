@@ -105,17 +105,21 @@ class Nearest:
         ind = np.argmin(list(zip(*temp))[0])  # when nested iterables - returns minimum of first positions
         return temp[ind]
 
-    def draw(self):
+    def draw(self, saveFile=None, drawEdges = True):
         fig = visualizeData(self._position_data, [graph.points for graph in self._clusters] + [self._nodes_left],
-                            reduce(add, [graph.edges for graph in self._clusters]), True)
+                            reduce(add, [graph.edges for graph in self._clusters]), True, drawEdges=drawEdges)
         fig.canvas.draw()
         data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
+        if saveFile is not None:
+            cv2.imwrite(saveFile, data)
         cv2.imshow('win', data)
         cv2.waitKey(10)
         plt.close(fig)
-
+    def distribute_random_point(self):
+        point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
+        graph = self._clusters[self._random.randrange(0, len(self._clusters))]
+        graph.appendPoint(point)
     def distribute_next_point(self):
         point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
         costs = [(graph.get_node_cost(point), graph) for graph in self._clusters]
@@ -133,9 +137,9 @@ class Nearest:
         if self._online_draw:
             self.draw()
 
-    def visualize(self, position_data):
+    def visualize(self, position_data, drawEdges=True):
         visualizeData(position_data, [graph.points for graph in self._clusters],
-                      reduce(add, [graph.edges for graph in self._clusters]))
+                      reduce(add, [graph.edges for graph in self._clusters]), drawEdges=drawEdges)
 
     def sum_of_MST(self):
         return reduce(add, [graph.MST_length for graph in self._clusters])
