@@ -157,9 +157,13 @@ class LocalSearch:
             # print()
             # self.draw()
 
-    def update_cache(self, move_from, move_to, point, sum_from, sum_to):
+    def updateMache(self, move_from, move_to, point, sum_from, sum_to):
         self.cache_array[move_from, move_to, point] = (sum_from, sum_to)
 
-    def upddate_cache_after_move(self, move_from, move_to, point):
-        self.cache_array[move_from.id, :, point] = None
-        self.cache_array[move_to.id,:,point] = None;
+    def upddateCacheAfterMove(self, move_from, move_to):
+        self.cache_array[move_from.id] = 0
+        self.cache_array[move_to.id] = 0
+
+    def getFromCache(self,move_from,move_to,point):
+        index = (move_from,move_to,point)
+        return self.cache_array[index]
