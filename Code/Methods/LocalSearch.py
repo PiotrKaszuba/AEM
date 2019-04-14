@@ -1,8 +1,11 @@
 from random import shuffle
 import math
 import numpy as np
+
+
 class LocalSearch:
-    def __init__(self, listOfGraphs, nearest=None, useCandidateMoves=False, useCache=False, distance_matrix = None, k_candidates=10):
+    def __init__(self, listOfGraphs, nearest=None, useCandidateMoves=False, useCache=False, distance_matrix=None,
+                 k_candidates=10):
         self.graphs = listOfGraphs
         self.points = []
         self.graphFromPoint = self.generatePointsDict()
@@ -11,10 +14,12 @@ class LocalSearch:
         self.useCandidateMoves = useCandidateMoves
         self.useCache = useCache
         self.candidateMoves = self.generateCandidatesForPoints(distance_matrix, k_candidates)
+        self.cache_array = np.full_like((len(listOfGraphs), len(listOfGraphs), len(self.points)), None)
 
     def generateCandidatesForPoints(self, distance_matrix, k):
         idx = np.argpartition(distance_matrix, k)
         return idx[:, :k]
+
     def countMetric(self, recompute=False, setVar=True):
         temp = 0
         weights = 0
@@ -27,7 +32,7 @@ class LocalSearch:
             self.metric = temp / weights
             return self.metric
         else:
-            return temp/weights
+            return temp / weights
 
     def generatePointsDict(self):
         self.graphFromPoint = {}
@@ -36,8 +41,10 @@ class LocalSearch:
                 self.graphFromPoint[point] = graph
                 self.points.append(point)
         return self.graphFromPoint
-    def draw(self, saveFile = None):
+
+    def draw(self, saveFile=None):
         self.nearest.draw(saveFile)
+
     def generateMoves(self):
         self.moves = []
         for point in self.points:
@@ -50,43 +57,36 @@ class LocalSearch:
                 for graph in self.graphs:
                     if graph != self.graphFromPoint[point]:
                         self.moves.append((point, graph))
-        #print(len(self.moves))
+        # print(len(self.moves))
         shuffle(self.moves)
 
     def moveCost(self, point, graphFrom, graphTo):
 
-        currentCostGraphFrom = (graphFrom.points_distance,graphFrom.weights)
-        currentCostGraphTo = (graphTo.points_distance,graphTo.weights)
-
-
+        currentCostGraphFrom = (graphFrom.points_distance, graphFrom.weights)
+        currentCostGraphTo = (graphTo.points_distance, graphTo.weights)
         changedCostFrom, changedCostTo = self.movePoint(point, graphFrom, graphTo, True)
 
         after = self.countMetric(setVar=False)
 
         self.movePoint(point, graphTo, graphFrom, avgs_to_set=[currentCostGraphTo, currentCostGraphFrom])
 
-
-
-
-
         return self.metric - after, changedCostFrom, changedCostTo, after
 
     def movePoint(self, point, graphFrom, graphTo, recompute=False, avgs_to_set=None):
-        graphFrom.removePoints(points= None, point = point, compute_MST= False)
+        graphFrom.removePoints(points=None, point=point, compute_MST=False)
 
         graphTo.appendPoint(point, False)
 
-
         if recompute:
             graphFrom.full_connected_graph_point_distance(computeAll=False, pointRemove=point)
-            graphTo.full_connected_graph_point_distance(computeAll=False, pointAdd = point)
+            graphTo.full_connected_graph_point_distance(computeAll=False, pointAdd=point)
 
         if avgs_to_set is not None:
             graphFrom.points_distance = avgs_to_set[0][0]
             graphFrom.weights = avgs_to_set[0][1]
             graphTo.points_distance = avgs_to_set[1][0]
             graphTo.weights = avgs_to_set[1][1]
-        return (graphFrom.points_distance,graphFrom.weights), (graphTo.points_distance,graphTo.weights)
+        return (graphFrom.points_distance, graphFrom.weights), (graphTo.points_distance, graphTo.weights)
 
     def greedyStep(self):
         for move in self.moves:
@@ -94,10 +94,9 @@ class LocalSearch:
             currentGraph = self.graphFromPoint[point]
             moveToGraph = move[1]
 
-            move_cost, sum_from, sum_to, metricAfter =  self.moveCost(point, currentGraph, moveToGraph)
+            move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
 
             if move_cost > 0:
-
                 self.movePoint(point, currentGraph, moveToGraph, avgs_to_set=[sum_from, sum_to])
                 self.graphFromPoint[point] = moveToGraph
                 self.metric = metricAfter
@@ -105,25 +104,24 @@ class LocalSearch:
 
         return False
 
-
     def greedy(self):
         improve = True
 
         while (improve):
-            #print("Step")
+            # print("Step")
             self.generateMoves()
             improve = self.greedyStep()
-            #print(self.countMetric(True))
-            #self.draw()
+            # print(self.countMetric(True))
+            # self.draw()
 
-    def steep_step(self):
+    def steep_step(self, use_cache):
         max_move = 0
         best_move = None
         best_after = None
 
         for move in self.moves:
 
-            #print(len(self.moves))
+            # print(len(self.moves))
 
             point = move[0]
             currentGraph = self.graphFromPoint[point]
@@ -132,29 +130,36 @@ class LocalSearch:
             move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
 
             if move_cost > max_move:
-                #print(self.countMetric(True))
+                # print(self.countMetric(True))
                 max_move = move_cost
                 best_move = (move, sum_from, sum_to)
                 best_after = metricAfter
 
         if best_move is not None:
-            self.movePoint(best_move[0][0],self.graphFromPoint[best_move[0][0]],best_move[0][1],avgs_to_set=[best_move[1],best_move[2]])
+            self.movePoint(best_move[0][0], self.graphFromPoint[best_move[0][0]], best_move[0][1],
+                           avgs_to_set=[best_move[1], best_move[2]])
             self.graphFromPoint[best_move[0][0]] = best_move[0][1]
             self.metric = best_after
-            #self.countMetric()
+            # self.countMetric()
 
             return True
         else:
             return False
-        
 
     def steep(self):
         improve = True
         while (improve):
             self.generateMoves()
-            #print(self.countMetric(True))
+            # print(self.countMetric(True))
             improve = self.steep_step()
-            #print("Step")
-            #self.countMetric(True)
-            #print()
-            #self.draw()
+            # print("Step")
+            # self.countMetric(True)
+            # print()
+            # self.draw()
+
+    def update_cache(self, move_from, move_to, point, sum_from, sum_to):
+        self.cache_array[move_from, move_to, point] = (sum_from, sum_to)
+
+    def upddate_cache_after_move(self, move_from, move_to, point):
+        self.cache_array[move_from.id, :, point] = None
+        self.cache_array[move_to.id,:,point] = None;
