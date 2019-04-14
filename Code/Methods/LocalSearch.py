@@ -53,22 +53,56 @@ class LocalSearch:
         #print(len(self.moves))
         shuffle(self.moves)
 
-    def moveCost(self, point, graphFrom, graphTo):
+    def testForCost(self, point ,graphFrom, graphTo):
+        # zapamietanie aktualnego stanu
+        currentCostGraphFrom = (graphFrom.points_distance, graphFrom.weights)
+        currentCostGraphTo = (graphTo.points_distance, graphTo.weights)
 
-        currentCostGraphFrom = (graphFrom.points_distance,graphFrom.weights)
-        currentCostGraphTo = (graphTo.points_distance,graphTo.weights)
-
-
+        # testowanie przeniesienia punktu
         changedCostFrom, changedCostTo = self.movePoint(point, graphFrom, graphTo, True)
 
+        # obliczenie metryki wlasciwe
         after = self.countMetric(setVar=False)
+        # odwracamy efekt testów
+        self.movePoint(point, graphTo, graphFrom, avgs_to_set=[currentCostGraphTo,
+                                                               currentCostGraphFrom])  # uzupelniajac zapamietanym stanem poprzednim
 
-        self.movePoint(point, graphTo, graphFrom, avgs_to_set=[currentCostGraphTo, currentCostGraphFrom])
+        if self.useCache:
+            self.updateCache(graphFrom, graphTo, point, changedCostFrom, changedCostTo)
+
+        return after, changedCostFrom, changedCostTo
+
+    def testForCostWithCache(self, graphFrom, graphTo, cacheVal):
+        currentCostGraphFrom = (graphFrom.points_distance, graphFrom.weights)
+        currentCostGraphTo = (graphTo.points_distance, graphTo.weights)
+        graphFrom.points_distance = cacheVal[0][0]
+        graphFrom.weights = cacheVal[0][1]
+        graphTo.points_distance = cacheVal[1][0]
+        graphTo.weights = cacheVal[1][1]
+
+        after = self.countMetric(setVar=False)
+        graphFrom.points_distance = currentCostGraphFrom[0]
+        graphFrom.weights = currentCostGraphFrom[1]
+        graphTo.points_distance = currentCostGraphTo[0]
+        graphTo.weights = currentCostGraphTo[1]
+        return after
 
 
 
+    def moveCost(self, point, graphFrom, graphTo):
+        if not self.useCache:
+           after, changedCostFrom, changedCostTo = self.testForCost(point, graphFrom, graphTo)
 
+        else:
+            cacheVal = self.getFromCache(point, graphFrom, graphTo)
+            if np.isnan(cacheVal).any():
+                after, changedCostFrom, changedCostTo = self.testForCost(point, graphFrom, graphTo)
+            else:
+                after = self.testForCostWithCache(graphFrom, graphTo, cacheVal)
+                changedCostFrom = cacheVal[0]
+                changedCostTo = cacheVal[1]
 
+        # zwracamy roznice w poprzednim stanie a nowym, oba skladniki ( dla grafu from i to) i nowa metryke
         return self.metric - after, changedCostFrom, changedCostTo, after
 
     def movePoint(self, point, graphFrom, graphTo, recompute=False, avgs_to_set=None):
@@ -94,13 +128,15 @@ class LocalSearch:
             currentGraph = self.graphFromPoint[point]
             moveToGraph = move[1]
 
-            move_cost, sum_from, sum_to, metricAfter =  self.moveCost(point, currentGraph, moveToGraph)
+            move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
 
             if move_cost > 0:
 
                 self.movePoint(point, currentGraph, moveToGraph, avgs_to_set=[sum_from, sum_to])
                 self.graphFromPoint[point] = moveToGraph
                 self.metric = metricAfter
+                if self.useCache:
+                    self.updateCacheAfterMove(currentGraph, moveToGraph)
                 return True
 
         return False
@@ -141,6 +177,8 @@ class LocalSearch:
             self.movePoint(best_move[0][0],self.graphFromPoint[best_move[0][0]],best_move[0][1],avgs_to_set=[best_move[1],best_move[2]])
             self.graphFromPoint[best_move[0][0]] = best_move[0][1]
             self.metric = best_after
+            if self.useCache:
+                self.updateCacheAfterMove(currentGraph, moveToGraph)
             #self.countMetric()
 
             return True
