@@ -10,7 +10,8 @@ import numpy as np
 
 import math
 class Graph:
-    def __init__(self, points, distance_matrix):
+    def __init__(self, points, distance_matrix,id):
+        self.id = id
         self.points = points
         self._recompute = True
         self.MST_length = 0
