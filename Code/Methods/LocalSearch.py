@@ -14,7 +14,7 @@ class LocalSearch:
         self.useCandidateMoves = useCandidateMoves
         self.useCache = useCache
         self.candidateMoves = self.generateCandidatesForPoints(distance_matrix, k_candidates)
-        self.cache_array = np.full_like((len(listOfGraphs), len(listOfGraphs), len(self.points)), None)
+        self.cache_array = np.full_like((len(listOfGraphs), len(listOfGraphs), len(self.points)), np.nan)
 
     def generateCandidatesForPoints(self, distance_matrix, k):
         idx = np.argpartition(distance_matrix, k)
@@ -157,12 +157,12 @@ class LocalSearch:
             # print()
             # self.draw()
 
-    def updateMache(self, move_from, move_to, point, sum_from, sum_to):
+    def updateCache(self, move_from, move_to, point, sum_from, sum_to):
         self.cache_array[move_from, move_to, point] = (sum_from, sum_to)
 
     def upddateCacheAfterMove(self, move_from, move_to):
-        self.cache_array[move_from.id] = 0
-        self.cache_array[move_to.id] = 0
+        self.cache_array[move_from.id] = np.nan
+        self.cache_array[move_to.id] = np.nan
 
     def getFromCache(self,move_from,move_to,point):
         index = (move_from,move_to,point)
