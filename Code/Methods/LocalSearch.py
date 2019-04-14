@@ -1,12 +1,20 @@
 from random import shuffle
 import math
+import numpy as np
 class LocalSearch:
-    def __init__(self, listOfGraphs, nearest=None):
+    def __init__(self, listOfGraphs, nearest=None, useCandidateMoves=False, useCache=False, distance_matrix = None, k_candidates=10):
         self.graphs = listOfGraphs
         self.points = []
         self.graphFromPoint = self.generatePointsDict()
         self.metric = self.countMetric(True)
         self.nearest = nearest
+        self.useCandidateMoves = useCandidateMoves
+        self.useCache = useCache
+        self.candidateMoves = self.generateCandidatesForPoints(distance_matrix, k_candidates)
+
+    def generateCandidatesForPoints(self, distance_matrix, k):
+        idx = np.argpartition(distance_matrix, k)
+        return idx[:, :k]
     def countMetric(self, recompute=False, setVar=True):
         temp = 0
         weights = 0
@@ -33,10 +41,16 @@ class LocalSearch:
     def generateMoves(self):
         self.moves = []
         for point in self.points:
-            for graph in self.graphs:
-                if graph != self.graphFromPoint[point]:
-                    self.moves.append((point, graph))
-
+            if self.useCandidateMoves:
+                graphsSet = {self.graphFromPoint[pt] for pt in self.candidateMoves[point]}
+                for graph in graphsSet:
+                    if graph != self.graphFromPoint[point]:
+                        self.moves.append((point, graph))
+            else:
+                for graph in self.graphs:
+                    if graph != self.graphFromPoint[point]:
+                        self.moves.append((point, graph))
+        #print(len(self.moves))
         shuffle(self.moves)
 
     def moveCost(self, point, graphFrom, graphTo):

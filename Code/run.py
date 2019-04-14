@@ -37,9 +37,9 @@ for loop in range(times):
 
 
     #nearest.visualize(position_data, drawEdges=False)
-    localSearch = LocalSearch(nearest._clusters, nearest)
+    localSearch = LocalSearch(nearest._clusters, nearest, useCandidateMoves=True, distance_matrix=matrix, k_candidates=21)
     #print(localSearch.countMetric(True))
-    localSearch.greedy()
+    localSearch.steep()
     #print(localSearch.countMetric(True))
 
 
