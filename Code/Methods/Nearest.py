@@ -31,6 +31,9 @@ class Nearest:
                 for point in starting_points
             ]
 
+        for i in range(len(self._clusters)):
+            self._clusters[i].id = i
+
 
     def initialize_random(self):
         return [

@@ -14,7 +14,7 @@ class LocalSearch:
         self.useCandidateMoves = useCandidateMoves
         self.useCache = useCache
         self.candidateMoves = self.generateCandidatesForPoints(distance_matrix, k_candidates)
-        self.cache_array = np.full_like((len(listOfGraphs), len(listOfGraphs), len(self.points)), np.nan)
+        self.cache_array = np.full((len(listOfGraphs), len(listOfGraphs), len(self.points), 2, 2), np.nan)
 
     def generateCandidatesForPoints(self, distance_matrix, k):
         idx = np.argpartition(distance_matrix, k)
@@ -23,11 +23,13 @@ class LocalSearch:
     def countMetric(self, recompute=False, setVar=True):
         temp = 0
         weights = 0
+
         for graph in self.graphs:
             if recompute:
                 graph.full_connected_graph_point_distance()
             temp += graph.points_distance if not math.isnan(graph.points_distance) else 0
             weights += graph.weights
+        #x = [(graph.points_distance, graph.weights) for graph in self.graphs]
         if setVar:
             self.metric = temp / weights
             return self.metric
@@ -101,14 +103,15 @@ class LocalSearch:
            after, changedCostFrom, changedCostTo = self.testForCost(point, graphFrom, graphTo)
 
         else:
-            cacheVal = self.getFromCache(point, graphFrom, graphTo)
+            cacheVal = self.getFromCache(graphFrom, graphTo, point)
             if np.isnan(cacheVal).any():
                 after, changedCostFrom, changedCostTo = self.testForCost(point, graphFrom, graphTo)
             else:
                 after = self.testForCostWithCache(graphFrom, graphTo, cacheVal)
+
+                #print(after)
                 changedCostFrom = cacheVal[0]
                 changedCostTo = cacheVal[1]
-
         # zwracamy roznice w poprzednim stanie a nowym, oba skladniki ( dla grafu from i to) i nowa metryke
         return self.metric - after, changedCostFrom, changedCostTo, after
 
@@ -138,10 +141,11 @@ class LocalSearch:
 
             if move_cost > 0:
                 self.movePoint(point, currentGraph, moveToGraph, avgs_to_set=[sum_from, sum_to])
-                self.graphFromPoint[point] = moveToGraph
-                self.metric = metricAfter
                 if self.useCache:
                     self.updateCacheAfterMove(currentGraph, moveToGraph)
+                self.graphFromPoint[point] = moveToGraph
+                self.metric = metricAfter
+
                 return True
 
         return False
@@ -156,7 +160,7 @@ class LocalSearch:
             # print(self.countMetric(True))
             # self.draw()
 
-    def steep_step(self, use_cache):
+    def steep_step(self):
         max_move = 0
         best_move = None
         best_after = None
@@ -172,7 +176,7 @@ class LocalSearch:
             move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
 
             if move_cost > max_move:
-                # print(self.countMetric(True))
+                #print(self.countMetric(True))
                 max_move = move_cost
                 best_move = (move, sum_from, sum_to)
                 best_after = metricAfter
@@ -180,10 +184,11 @@ class LocalSearch:
         if best_move is not None:
             self.movePoint(best_move[0][0], self.graphFromPoint[best_move[0][0]], best_move[0][1],
                            avgs_to_set=[best_move[1], best_move[2]])
+            if self.useCache:
+                self.updateCacheAfterMove(self.graphFromPoint[best_move[0][0]], best_move[0][1])
             self.graphFromPoint[best_move[0][0]] = best_move[0][1]
             self.metric = best_after
-            if self.useCache:
-                self.updateCacheAfterMove(currentGraph, moveToGraph)
+
             #self.countMetric()
 
             return True
@@ -202,12 +207,16 @@ class LocalSearch:
             # self.draw()
 
     def updateCache(self, move_from, move_to, point, sum_from, sum_to):
-        self.cache_array[move_from, move_to, point] = (sum_from, sum_to)
+        self.cache_array[move_from.id, move_to.id, point] = (sum_from, sum_to)
 
-    def upddateCacheAfterMove(self, move_from, move_to):
+    def updateCacheAfterMove(self, move_from, move_to):
+        #self.cache_array[:] = np.nan
         self.cache_array[move_from.id] = np.nan
         self.cache_array[move_to.id] = np.nan
+        self.cache_array[:, move_from.id] = np.nan
+        self.cache_array[:, move_to.id] = np.nan
+
 
     def getFromCache(self,move_from,move_to,point):
-        index = (move_from,move_to,point)
+        index = (move_from.id,move_to.id,point)
         return self.cache_array[index]
