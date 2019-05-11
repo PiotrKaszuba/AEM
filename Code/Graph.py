@@ -17,7 +17,7 @@ class Graph:
         self.MST_length = 0
         self._candidate_nodes_costs = {}
         self._distance_matrix = distance_matrix
-        self.points_distance = 0;
+        self.points_distance = 0
 
         self.edges = []
         self.computeMST()

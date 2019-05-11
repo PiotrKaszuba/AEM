@@ -37,7 +37,7 @@ for loop in range(times):
 
 
     #nearest.visualize(position_data, drawEdges=False)
-    localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=True, distance_matrix=matrix, k_candidates=21)
+    localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
     #print(localSearch.countMetric(True))
     localSearch.steep()
     #print(localSearch.countMetric(True))
@@ -67,9 +67,9 @@ print('Worst: ' + str(max(lengths)))
 print('Avg: ' + str(average(lengths)))
 print('Avg Time: ' + str(average(durations)))
 with open('max.txt', 'a+') as file:
-    file.write('Next-Steep-Cache-Candidate- Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
+    file.write('Next-Steep-Cache- Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
         lengths)) + ', Avg: ' + str(average(lengths)) + ', Avg time: ' + str(average(durations)) + '\n')
-optimal_nearest.draw("Next-Steep-Cache-Candidate.png", drawEdges=False)
+optimal_nearest.draw("Next-Steep-Cache.png", drawEdges=False)
 # length, edges = PRIM.PRIM(nodes, matrix)
 # length2, edges2 = PRIM.PRIM(nodes2, matrix)
 # print(length)
