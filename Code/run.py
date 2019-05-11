@@ -2,6 +2,8 @@ import random
 from time import time
 
 from scipy import average
+
+from Code.Methods.IterativeLocalSearch import IterativeLocalSearach
 from Code.Methods.LocalSearch import  LocalSearch
 from Code.Data.DistanceMatrix import getDistanceMatrix
 from Code.Data.LoadData import readData
@@ -33,18 +35,18 @@ for loop in range(times):
     # nearest.visualize(position_data)
 
     while(len(nearest._nodes_left)>0):
-        nearest.distribute_next_point()
+        nearest.distribute_random_point()
 
 
     #nearest.visualize(position_data, drawEdges=False)
-    localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
+    # localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
     #print(localSearch.countMetric(True))
-    localSearch.steep()
+    # localSearch.steep()
     #print(localSearch.countMetric(True))
+    iterativ = IterativeLocalSearach( nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
 
-
-    current_length = localSearch.countMetric()
-
+    # current_length = localSearch.countMetric()
+    current_length = iterativ.iterative_local_search()
     duration = time() - t
     print('Time: ' + str(duration))
     durations.append(duration)
