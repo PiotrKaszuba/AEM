@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import pearsonr, linregress
 import math
 import pickle
+import matplotlib.pyplot as plt
 from Code.localSearchSimilaritiesRunner import localSearchRunner
 def average(x):
     assert len(x) > 0
@@ -35,18 +36,48 @@ def run():
     with open("correlations.bin", mode='wb') as file:
         pickle.dump(results, file)
     with open("correlations.txt", mode='w') as file:
-        file.write(results)
+        file.write(str(results))
+
+def load():
+    with open("correlations.bin", mode='rb') as file:
+        results = pickle.load(file)
+    ind = np.argmin(results[7])
+    print(results[6][ind])
+    print(results[7][ind])
+    scores = results[6]
+    print(np.mean(scores))
+    similarities = results[7]
+    scipyPearson = pearsonr(similarities, scores)
+    scipyLineregress = linregress(similarities, scores)
+    numpyCorr = np.corrcoef(scores, similarities)
+    stackDefinition = pearson_def(scores, similarities)
+    print(scipyPearson)
+    print(scipyLineregress)
+    plt.scatter(similarities, scores)
+    abline(scipyLineregress[0], scipyLineregress[1])
+    plt.show()
+    #print(np.mean(results[7]))
+
+def abline(slope, intercept):
+    """Plot a line from slope and intercept"""
+    axes = plt.gca()
+    x_vals = np.array(axes.get_xlim())
+    y_vals = intercept + slope * x_vals
+    plt.plot(x_vals, y_vals, '--', c='g')
+    plt.xlabel("Podobieństwo")
+    plt.ylabel("Koszt")
+    plt.title("Liniowa zależność kosztu od podobieństwa do rozwiązania najlepszego")
 def correlationSimilarity(best : LocalSearch, solutions):
     divisor = getDivisor(best)
     scores = np.array([solution.metric for solution in solutions])
-    similarities = np.array(map(lambda x: x/divisor, [compareSimilarity(best, solution) for solution in solutions]))
+    similarities = np.array(list(map(lambda x: x/divisor, [compareSimilarity(best, solution) for solution in solutions])))
 
     scipyPearson = pearsonr(scores, similarities)
     scipyLineregress = linregress(scores, similarities)
     numpyCorr = np.corrcoef(scores, similarities)
     stackDefinition = pearson_def(scores, similarities)
 
-    return [scipyPearson, scipyLineregress, numpyCorr, stackDefinition]
+    return [scipyPearson, scipyLineregress, numpyCorr, stackDefinition, best.metric, divisor, scores, similarities]
 
 
 
@@ -57,7 +88,7 @@ def getPairsOfPointsFromSolution(localsearch : LocalSearch):
 
 
 def getDivisor(best : LocalSearch):
-    return sum([graph.nCr() for graph in best.graphs])
+    return sum([graph.weights for graph in best.graphs])
 
 
 
@@ -70,5 +101,5 @@ def compareSimilarity(best : LocalSearch, compared : LocalSearch):
     return similarity
 
 if __name__ == "__main__":
-    run()
+    load()
 
