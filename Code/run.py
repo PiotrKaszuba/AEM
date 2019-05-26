@@ -15,7 +15,7 @@ position_data = readData(path="../objects20_06.data")
 matrix = getDistanceMatrix(position_data)
 all_nodes = len(position_data)
 clusters = 20
-times = 100
+times = 10
 
 optimal_nearest = None
 optimal_length = None
@@ -39,14 +39,14 @@ for loop in range(times):
 
 
     #nearest.visualize(position_data, drawEdges=False)
-    # localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
+    #localSearch = LocalSearch(nearest._clusters, nearest, useCache=True, useCandidateMoves=True, distance_matrix=matrix, k_candidates=21)
     #print(localSearch.countMetric(True))
-    # localSearch.steep()
+    #localSearch.greedy()
     #print(localSearch.countMetric(True))
-    iterativ = IterativeLocalSearach( nearest, useCache=True, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21)
+    iterativ = IterativeLocalSearach( nearest, useCache=False, useCandidateMoves=False, distance_matrix=matrix, k_candidates=21, randRepair=False)
 
-    # current_length = localSearch.countMetric()
-    current_length = iterativ.iterative_local_search()
+    #current_length = localSearch.countMetric()
+    current_length = iterativ.iterative_local_search(destroy_ratio=0.3, tineToGo=400)
     duration = time() - t
     print('Time: ' + str(duration))
     durations.append(duration)
@@ -56,7 +56,7 @@ for loop in range(times):
 
     if optimal_length is None or optimal_length > current_length:
         optimal_length = current_length
-        optimal_nearest = nearest
+        optimal_nearest = iterativ
         optimal_seed = seed
 
     print(str(loop + 1) + '. Sum of lengths: ' + str(current_length))
@@ -69,9 +69,9 @@ print('Worst: ' + str(max(lengths)))
 print('Avg: ' + str(average(lengths)))
 print('Avg Time: ' + str(average(durations)))
 with open('max.txt', 'a+') as file:
-    file.write('Next-Steep-Cache- Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
+    file.write('Iterative-Big- Seed: ' + str(optimal_seed) + ', Best: ' + str(optimal_length) + ', Worst: ' + str(max(
         lengths)) + ', Avg: ' + str(average(lengths)) + ', Avg time: ' + str(average(durations)) + '\n')
-optimal_nearest.draw("Next-Steep-Cache.png", drawEdges=False)
+optimal_nearest.draw("Iterative-Big.png", drawEdges=False)
 # length, edges = PRIM.PRIM(nodes, matrix)
 # length2, edges2 = PRIM.PRIM(nodes2, matrix)
 # print(length)

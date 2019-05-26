@@ -13,17 +13,20 @@ from Code.drawGraph import visualizeData
 import math
 
 class Nearest:
-    def __init__(self, nodes, distance_matrix, rand, num_of_clusters=None, starting_points=None, init_by_range=False,
-                 online_draw=False, position_data=None):
+    def __init__(self, nodes, distance_matrix, rand=None, num_of_clusters=None, starting_points=None, init_by_range=False,
+                 online_draw=False, position_data=None, nearest_obj=None):
         self._distance_matrix = distance_matrix
         self._nodes_left = list(nodes)
         self._num_of_clusters = num_of_clusters
         self._online_draw = online_draw
         self._position_data = position_data
-        self._random = rand
+        self._random = rand if rand is not None else random.Random()
         assert bool(num_of_clusters is None) ^ bool(starting_points is None)  # xor
         if starting_points is None:
-            self._clusters = self.initialize_by_range() if init_by_range else self.initialize_random()
+            if nearest_obj is not None:
+                self._clusters = self.initialize_by_another_obj(nearest_obj)
+            else:
+                self._clusters = self.initialize_by_range() if init_by_range else self.initialize_random()
         else:
             self._clusters = [
                 Graph(
@@ -33,6 +36,10 @@ class Nearest:
 
         for i in range(len(self._clusters)):
             self._clusters[i].id = i
+
+    def initialize_by_another_obj(self, nearest):
+        self._nodes_left = [nd for nd in nearest._nodes_left]
+        return [Graph([pt for pt in graph.points], self._distance_matrix, int(graph.id)) for graph in nearest._clusters]
 
 
     def initialize_random(self):
@@ -119,10 +126,36 @@ class Nearest:
         cv2.imshow('win', data)
         cv2.waitKey(10)
         plt.close(fig)
+
+    def recompute_all(self):
+        for graph in self._clusters:
+            graph.full_connected_graph_point_distance()
+    def distribute_next_point_new_metric(self):
+        point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
+        temp =0
+        weights =0
+        weights_d = []
+        temp_d = []
+        for graph in self._clusters:
+            temp += graph.points_distance if not math.isnan(graph.points_distance) else 0
+            weights += graph.weights
+            t_d, w_d = graph.full_connected_graph_point_distance(False, point, None, True)
+            weights_d.append(w_d)
+            temp_d.append(t_d)
+        costs = [(temp+temp_d[i])/(weights+weights_d[i]) for i in range(len(self._clusters))]
+
+        idx = np.argpartition(costs, 4)
+        ind = np.random.choice(idx[:4])
+
+        self._clusters[ind].appendPoint(point)
+        self._clusters[ind].full_connected_graph_point_distance(False, point, None, False)
+        if self._online_draw:
+            self.draw()
+
     def distribute_random_point(self):
         point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
         graph = self._clusters[self._random.randrange(0, len(self._clusters))]
-        graph.appendPoint(point)
+        graph.appendPoint(point, False)
     def distribute_next_point(self):
         point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
         costs = [(graph.get_node_cost(point), graph) for graph in self._clusters]

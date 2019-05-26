@@ -1,20 +1,22 @@
 from random import shuffle
 import math
 import numpy as np
-
+import time
 
 class LocalSearch:
     def __init__(self, listOfGraphs, nearest=None, useCandidateMoves=False, useCache=False, distance_matrix=None,
                  k_candidates=10):
         self.graphs = listOfGraphs
         self.points = []
-        self.graphFromPoint = self.generatePointsDict()
+        self.graphFromPoint = {}
+        self.generatePointsDict()
         self.metric = self.countMetric(True)
         self.nearest = nearest
         self.useCandidateMoves = useCandidateMoves
         self.useCache = useCache
         self.candidateMoves = self.generateCandidatesForPoints(distance_matrix, k_candidates)
         self.cache_array = np.full((len(listOfGraphs), len(listOfGraphs), len(self.points), 2, 2), np.nan)
+        self.moves_done = {}
 
     def generateCandidatesForPoints(self, distance_matrix, k):
         idx = np.argpartition(distance_matrix, k)
@@ -23,7 +25,6 @@ class LocalSearch:
     def countMetric(self, recompute=False, setVar=True):
         temp = 0
         weights = 0
-
         for graph in self.graphs:
             if recompute:
                 graph.full_connected_graph_point_distance()
@@ -37,7 +38,6 @@ class LocalSearch:
             return temp / weights
 
     def generatePointsDict(self):
-        self.graphFromPoint = {}
         for graph in self.graphs:
             for point in graph.points:
                 self.graphFromPoint[point] = graph
@@ -49,9 +49,12 @@ class LocalSearch:
 
     def generateMoves(self):
         self.moves = []
+        #t = time.time()
         for point in self.points:
             if self.useCandidateMoves:
+
                 graphsSet = {self.graphFromPoint[pt] for pt in self.candidateMoves[point]}
+
                 for graph in graphsSet:
                     if graph != self.graphFromPoint[point]:
                         self.moves.append((point, graph))
@@ -60,10 +63,13 @@ class LocalSearch:
                     if graph != self.graphFromPoint[point]:
                         self.moves.append((point, graph))
         # print(len(self.moves))
+
         shuffle(self.moves)
+        #print(time.time() - t)
 
     def testForCost(self, point ,graphFrom, graphTo):
         # zapamietanie aktualnego stanu
+
         currentCostGraphFrom = (graphFrom.points_distance, graphFrom.weights)
         currentCostGraphTo = (graphTo.points_distance, graphTo.weights)
 
@@ -72,6 +78,7 @@ class LocalSearch:
 
         # obliczenie metryki wlasciwe
         after = self.countMetric(setVar=False)
+
         # odwracamy efekt testów
         self.movePoint(point, graphTo, graphFrom, avgs_to_set=[currentCostGraphTo,
                                                                currentCostGraphFrom])  # uzupelniajac zapamietanym stanem poprzednim
@@ -132,7 +139,10 @@ class LocalSearch:
         return (graphFrom.points_distance, graphFrom.weights), (graphTo.points_distance, graphTo.weights)
 
     def greedyStep(self):
+
+
         for move in self.moves:
+
             point = move[0]
             currentGraph = self.graphFromPoint[point]
             moveToGraph = move[1]
@@ -140,9 +150,12 @@ class LocalSearch:
             move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
 
             if move_cost > 0:
+
                 self.movePoint(point, currentGraph, moveToGraph, avgs_to_set=[sum_from, sum_to])
+
                 if self.useCache:
                     self.updateCacheAfterMove(currentGraph, moveToGraph)
+
                 self.graphFromPoint[point] = moveToGraph
                 self.metric = metricAfter
 
@@ -150,16 +163,66 @@ class LocalSearch:
 
         return False
 
+    # def greedyStep2(self):
+    #
+    #
+    #     while True:
+    #         move = self.generateMove()
+    #         if move == False:
+    #             print("ff")
+    #             self.generateMoves()
+    #             self.moves_done.clear()
+    #             return self.greedyStep()
+    #
+    #         point = move[0]
+    #         currentGraph = self.graphFromPoint[point]
+    #         moveToGraph = move[1]
+    #
+    #         move_cost, sum_from, sum_to, metricAfter = self.moveCost(point, currentGraph, moveToGraph)
+    #
+    #         if move_cost > 0:
+    #             print("ok")
+    #             self.movePoint(point, currentGraph, moveToGraph, avgs_to_set=[sum_from, sum_to])
+    #
+    #             if self.useCache:
+    #                 self.updateCacheAfterMove(currentGraph, moveToGraph)
+    #
+    #             self.graphFromPoint[point] = moveToGraph
+    #             self.metric = metricAfter
+    #             self.moves_done.clear()
+    #             return True
+
+    # def generateMove(self):
+    #     for i in range(1000):
+    #         point = self.nearest._random.randint(0, len(self.points)-1)
+    #         graph = self.nearest._random.randint(0, len(self.graphs)-1)
+    #         accept = False
+    #         if self.moves_done.get((point,graph)) is None and self.graphFromPoint[point] != self.graphs[graph]:
+    #             accept=True
+    #             if self.useCandidateMoves:
+    #                 accept=False
+    #             for pt in self.candidateMoves[point]:
+    #                 if self.graphs[graph] == self.graphFromPoint[pt]:
+    #                     accept=True
+    #                     break
+    #         if accept:
+    #             self.moves_done[(point, graph)] = True
+    #             return (point, self.graphFromPoint[graph])
+    #     return False
+
+
     def greedy(self):
         improve = True
 
         while (improve):
             # print("Step")
+
             self.generateMoves()
             improve = self.greedyStep()
-            # print(self.countMetric(True))
+            #print(self.countMetric())
+            #print(time.time()-t)
             # self.draw()
-
+        #print([self.timer1, self.timer2, self.timer3, self.timer4, self.timer5])
     def steep_step(self):
         max_move = 0
         best_move = None
@@ -201,6 +264,7 @@ class LocalSearch:
             self.generateMoves()
             # print(self.countMetric(True))
             improve = self.steep_step()
+
             # print("Step")
             # self.countMetric(True)
             # print()

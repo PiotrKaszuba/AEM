@@ -109,14 +109,27 @@ class Graph:
         if n-2 < 0:
             return 0
         return n * (n-1)/2
-    def full_connected_graph_point_distance(self, computeAll=True, pointAdd=None, pointRemove=None):
-        if computeAll:
+    def full_connected_graph_point_distance(self, computeAll=True, pointAdd=None, pointRemove=None, justCheck=False):
+        if computeAll and not justCheck:
             self.points_distance = np.sum([self._distance_matrix[pair] for pair in combinations(self.points, 2)])
         else:
             if pointAdd is not None:
-                self.points_distance += np.sum(self._distance_matrix[pointAdd, self.points])
+                if justCheck:
+                    checkA =  np.sum(self._distance_matrix[pointAdd, self.points])
+                    d = 1
+                else:
+                    self.points_distance += np.sum(self._distance_matrix[pointAdd, self.points])
             if pointRemove is not None:
-                self.points_distance -= np.sum(self._distance_matrix[pointRemove, self.points])
+                if justCheck:
+                    checkA = -np.sum(self._distance_matrix[pointRemove, self.points])
+                    d = -1
+                else:
+                    self.points_distance -= np.sum(self._distance_matrix[pointRemove, self.points])
 
-        self.weights = self.nCr(len(self.points))
-        return self.points_distance
+        if justCheck and (pointAdd is not None or pointRemove is not None):
+            checkB = self.nCr(len(self.points) + d)
+            return checkA, checkB - self.weights
+        else:
+            self.weights = self.nCr(len(self.points))
+
+            return self.points_distance
