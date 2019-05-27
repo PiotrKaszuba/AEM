@@ -32,11 +32,63 @@ def pearson_def(x, y):
 def run():
     best, solutions = localSearchRunner()
     results = correlationSimilarity(best, solutions)
+
+
     print(results)
     with open("correlations.bin", mode='wb') as file:
         pickle.dump(results, file)
     with open("correlations.txt", mode='w') as file:
         file.write(str(results))
+
+    allToAll(solutions)
+
+def allToAll(solutions):
+    scores = np.array([solution.metric for solution in solutions])
+    similarities = []
+    for solution in solutions:
+        divisor = getDivisor(solution)
+        similarity = np.array(
+            list(map(lambda x: x / divisor, [compareSimilarity(solution, compared) for compared in solutions])))
+        similarities.append(np.mean(similarity))
+
+    scipyPearson = pearsonr(similarities, scores)
+    scipyLineregress = linregress(similarities, scores)
+    numpyCorr = np.corrcoef(scores, similarities)
+    stackDefinition = pearson_def(scores, similarities)
+
+    leastSimilar = np.argmin(similarities)
+    lSCost = scores[leastSimilar]
+    lSSim = similarities[leastSimilar]
+
+    mostSimilar = np.argmax(similarities)
+    mSCost = scores[mostSimilar]
+    mSSim = similarities[mostSimilar]
+
+    best = np.argmin(scores)
+    bCost = scores[best]
+    bSim = similarities[best]
+
+    worst = np.argmax(scores)
+    wCost = scores[worst]
+    wSim = similarities[worst]
+
+    avgCost = np.mean(scores)
+    avgSim = np.mean(similarities)
+
+    print([scipyPearson, scipyLineregress, numpyCorr, stackDefinition,  scores, similarities])
+
+    with open("allToAll.txt", mode='w') as file:
+        file.write("lS: cost: " + str(lSCost) + ", sim: " + str(lSSim)+"\n")
+        file.write("mS: cost: " + str(mSCost) + ", sim: " + str(mSSim) + "\n")
+        file.write("b: cost: " + str(bCost) + ", sim: " + str(bSim) + "\n")
+        file.write("w: cost: " + str(wCost) + ", sim: " + str(wSim) + "\n")
+        file.write("avg: cost: " + str(avgCost) + ", sim: " + str(avgSim) + "\n")
+        file.write("pearson: " + str(scipyPearson)+'\n')
+        file.write("line: " + str(scipyLineregress) + '\n')
+    plt.scatter(similarities, scores)
+    abline(scipyLineregress[0], scipyLineregress[1])
+    plt.show()
+    return [scipyPearson, scipyLineregress, numpyCorr, stackDefinition,  scores, similarities]
 
 def load():
     with open("correlations.bin", mode='rb') as file:
@@ -101,5 +153,5 @@ def compareSimilarity(best : LocalSearch, compared : LocalSearch):
     return similarity
 
 if __name__ == "__main__":
-    load()
+    run()
 
