@@ -38,6 +38,7 @@ def localSearchRunner():
             optimal_nearest = localSearch
         solutions.append(localSearch)
         print(str(loop + 1) + '. Sum of lengths: ' + str(current_length))
+
     return optimal_nearest, solutions
 
 if __name__ == "__main__":

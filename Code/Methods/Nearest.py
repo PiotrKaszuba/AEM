@@ -14,7 +14,7 @@ import math
 
 class Nearest:
     def __init__(self, nodes, distance_matrix, rand=None, num_of_clusters=None, starting_points=None, init_by_range=False,
-                 online_draw=False, position_data=None, nearest_obj=None):
+                 online_draw=False, position_data=None, nearest_obj=None, createClusters = True, givenClusters=None):
         self._distance_matrix = distance_matrix
         self._nodes_left = list(nodes)
         self._num_of_clusters = num_of_clusters
@@ -22,20 +22,23 @@ class Nearest:
         self._position_data = position_data
         self._random = rand if rand is not None else random.Random()
         assert bool(num_of_clusters is None) ^ bool(starting_points is None)  # xor
-        if starting_points is None:
-            if nearest_obj is not None:
-                self._clusters = self.initialize_by_another_obj(nearest_obj)
+        if createClusters:
+            if starting_points is None:
+                if nearest_obj is not None:
+                    self._clusters = self.initialize_by_another_obj(nearest_obj)
+                else:
+                    self._clusters = self.initialize_by_range() if init_by_range else self.initialize_random()
             else:
-                self._clusters = self.initialize_by_range() if init_by_range else self.initialize_random()
-        else:
-            self._clusters = [
-                Graph(
-                    list(point), distance_matrix)
-                for point in starting_points
-            ]
+                self._clusters = [
+                    Graph(
+                        list(point), distance_matrix)
+                    for point in starting_points
+                ]
 
-        for i in range(len(self._clusters)):
-            self._clusters[i].id = i
+            for i in range(len(self._clusters)):
+                self._clusters[i].id = i
+        if givenClusters is not None:
+            self._clusters = givenClusters
 
     def initialize_by_another_obj(self, nearest):
         self._nodes_left = [nd for nd in nearest._nodes_left]
@@ -115,7 +118,7 @@ class Nearest:
         ind = np.argmin(list(zip(*temp))[0])  # when nested iterables - returns minimum of first positions
         return temp[ind]
 
-    def draw(self, saveFile=None, drawEdges = True):
+    def draw(self, saveFile=None, drawEdges = True, time=10):
         fig = visualizeData(self._position_data, [graph.points for graph in self._clusters] + [self._nodes_left],
                             reduce(add, [graph.edges for graph in self._clusters]), True, drawEdges=drawEdges)
         fig.canvas.draw()
@@ -124,7 +127,7 @@ class Nearest:
         if saveFile is not None:
             cv2.imwrite(saveFile, data)
         cv2.imshow('win', data)
-        cv2.waitKey(10)
+        cv2.waitKey(time)
         plt.close(fig)
 
     def recompute_all(self):
@@ -156,6 +159,8 @@ class Nearest:
         point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
         graph = self._clusters[self._random.randrange(0, len(self._clusters))]
         graph.appendPoint(point, False)
+        if self._online_draw:
+            self.draw()
     def distribute_next_point(self):
         point = self._nodes_left.pop(self._random.randrange(0, len(self._nodes_left)))
         costs = [(graph.get_node_cost(point), graph) for graph in self._clusters]
