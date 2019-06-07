@@ -1,9 +1,6 @@
-from Code.Methods.LocalSearch import LocalSearch
 import time
 import numpy as np
-import copy as cp
 from operator import attrgetter
-from Code.Methods.Nearest import
 
 class Elite:
     def __init__(self,start_population,population_size):
@@ -13,7 +10,7 @@ class Elite:
 
     def get_pure_population(self,population):
         elite_pop = sorted(population, key=attrgetter('metric'))[:self.population_size]
-        return
+        return elite_pop
 
 
     def recombination_local_search(self, max_iters=100, ttg=None):
@@ -36,5 +33,5 @@ class Elite:
             currentTime += end - start
             print(currentTime)
             if (ttg is not None and currentTime > ttg) or (ttg is None and iters == max_iters):
-                breakadd
+                break
         return max(self.population, key=attrgetter('metric')).countMetric(True)
